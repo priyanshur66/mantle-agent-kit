@@ -3,7 +3,6 @@ import { getSigner, getProvider, getAgentAddress } from "../../core/client";
 import { erc20Abi } from "./abis";
 
 // Common burn address - using a well-known burn address that nobody has access to
-// This is the "dead" address commonly used for burning tokens
 const BURN_ADDRESS = "0x000000000000000000000000000000000000dEaD";
 
 export const transferErc20 = async ({

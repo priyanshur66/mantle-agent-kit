@@ -1,2 +1,4 @@
-export * from './tools/mantle';
-export * from './core/client';
+export * from './MantleAgent.js';
+export * from './tools.js';
+export * from './tools/mantle/index.js';
+export * from './core/client.js';
