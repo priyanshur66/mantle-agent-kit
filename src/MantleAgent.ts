@@ -5,6 +5,7 @@ import { getErc20Balance } from './tools/mantle/getErc20Balance.js';
 import { deployContract } from './tools/mantle/deployContract.js';
 import { initializeClient, setCurrentPrivateKey } from './core/client.js';
 import { createAgent } from './agent.js';
+import { applyFirewall } from './aifirewall/index.js';
 import type { AgentExecutor } from 'langchain/agents';
 import type { modelMapping } from './utils/models.js';
 
@@ -86,12 +87,20 @@ export class MantleAgent {
   }
 
   async execute(input: string) {
-    // Ensure the private key is set before each execution
-    setCurrentPrivateKey(this.privateKey);
+   
     
-    const response = await this.agentExecutor.invoke({
-      input,
+
+    const sanitizedInput = await applyFirewall(input, {
+      model: this.model,
+      openAiApiKey: this.openAiApiKey,
+      anthropicApiKey: this.anthropicApiKey,
     });
+
+    const response = await this.agentExecutor.invoke({
+      input: sanitizedInput,
+    });
+
+    setCurrentPrivateKey(this.privateKey);
 
     return response;
   }
