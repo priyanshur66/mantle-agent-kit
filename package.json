@@ -14,6 +14,25 @@
   "author": "",
   "license": "ISC",
   "description": "An AI agent SDK for Mantle blockchain",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/priyanshur66/mantle-agent-kit.git"
+  },
+  "homepage": "https://github.com/priyanshur66/mantle-agent-kit#readme",
+  "bugs": {
+    "url": "https://github.com/priyanshur66/mantle-agent-kit/issues"
+  },
+  "keywords": [
+    "mantle",
+    "blockchain",
+    "ai",
+    "agent",
+    "ethereum",
+    "web3",
+    "sdk",
+    "crypto",
+    "erc20"
+  ],
   "dependencies": {
     "@langchain/anthropic": "^0.3.11",
     "@langchain/core": "^0.3.23",
