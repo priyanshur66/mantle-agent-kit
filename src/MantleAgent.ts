@@ -6,7 +6,7 @@ import { deployContract } from './tools/mantle/deployContract.js';
 import { initializeClient, setCurrentPrivateKey } from './core/client.js';
 import { createAgent } from './agent.js';
 import { applyFirewall } from './aifirewall/index.js';
-import type { AgentExecutor } from 'langchain/agents';
+import type { Runnable } from '@langchain/core/runnables';
 import type { modelMapping } from './utils/models.js';
 
 export interface MantleAgentConfig {
@@ -47,10 +47,11 @@ export interface DeployContractParams {
 export class MantleAgent {
   private privateKey: string;
   private rpcUrl: string;
-  private agentExecutor: AgentExecutor;
+  private agentExecutor: Runnable;
   private model: keyof typeof modelMapping;
   private openAiApiKey?: string;
   private anthropicApiKey?: string;
+  private defaultSessionId: string;
 
   constructor(config: MantleAgentConfig) {
     this.privateKey = config.privateKey;
@@ -58,6 +59,7 @@ export class MantleAgent {
     this.model = config.model;
     this.openAiApiKey = config.openAiApiKey;
     this.anthropicApiKey = config.anthropicApiKey;
+  this.defaultSessionId = `mantle-agent-${Math.random().toString(36).slice(2)}-${Date.now()}`;
 
     if (!this.privateKey) {
       throw new Error('Private key is required.');
@@ -86,19 +88,17 @@ export class MantleAgent {
     };
   }
 
-  async execute(input: string) {
-   
-    
-
+  async execute(input: string, options?: { sessionId?: string }) {
     const sanitizedInput = await applyFirewall(input, {
       model: this.model,
       openAiApiKey: this.openAiApiKey,
       anthropicApiKey: this.anthropicApiKey,
     });
 
-    const response = await this.agentExecutor.invoke({
-      input: sanitizedInput,
-    });
+    const response = await this.agentExecutor.invoke(
+      { input: sanitizedInput },
+      { configurable: { sessionId: options?.sessionId ?? this.defaultSessionId } },
+    );
 
     setCurrentPrivateKey(this.privateKey);
 

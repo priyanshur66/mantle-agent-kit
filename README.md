@@ -43,6 +43,50 @@ const response = await agent.execute(
 console.log(response.output);
 ```
 
+### Conversation Memory (Sessions)
+
+The agent maintains per-session conversational memory using LangChain's RunnableWithMessageHistory. Your prompt template already includes `{chat_history}`, so prior messages in a session are automatically provided to the model and updated after each turn.
+
+Key points:
+- Memory is keyed by `sessionId` you pass to `execute`.
+- If you don't pass a `sessionId`, the agent uses a default per-instance session ID generated at construction.
+- Memory is in-process (not persisted across restarts) and isolated per MantleAgent instance.
+
+Basic usage with the default session:
+
+```ts
+// Uses the agent's default session (auto-generated). Subsequent calls share memory.
+await agent.execute('My name is Pri. Please remember it.');
+const r = await agent.execute('What is my name?');
+console.log(r.output); // Likely references "Pri"
+```
+
+Per-user sessions (recommended for multi-user apps):
+
+```ts
+const sessionId = `user:${userId}`;
+await agent.execute('Store my preferred token as MNT.', { sessionId });
+const res = await agent.execute('What is my preferred token?', { sessionId });
+console.log(res.output); // Should recall "MNT"
+```
+
+Isolated sessions example:
+
+```ts
+await agent.execute('Remember: my color is blue.', { sessionId: 'A' });
+const a = await agent.execute('What is my color?', { sessionId: 'A' }); // blue
+const b = await agent.execute('What is my color?', { sessionId: 'B' }); // unknown
+console.log(a.output, b.output);
+```
+
+Resetting memory:
+- Start using a new `sessionId`, or
+- Create a new MantleAgent instance.
+
+Persistence options:
+- By default, memory uses an in-process Map and `InMemoryChatMessageHistory`.
+- To persist across restarts or scale horizontally, replace it with a store like Redis by swapping the message history implementation.
+
 ## API Reference
 
 ### MantleAgent Class
@@ -62,11 +106,15 @@ new MantleAgent(config: MantleAgentConfig)
 
 #### Methods
 
-##### `execute(input: string)`
+##### `execute(input: string, options?: { sessionId?: string })`
 Execute blockchain operations using natural language commands.
 
 **Parameters:**
 - `input` (string): Natural language command
+- `options.sessionId` (string, optional): Identifier for a conversation session. When provided, memory is scoped to this ID. When omitted, a default per-agent session is used.
+
+**Returns:**
+- An object containing `input`, `chat_history`, and `output`.
 
 
 ## Security Features
